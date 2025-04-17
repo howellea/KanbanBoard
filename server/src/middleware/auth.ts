@@ -6,18 +6,31 @@ interface JwtPayload {
   id: number;
 }
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+// Extend the Request type to include `user`
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload;
+    }
+  }
+}
+
+export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Access token missing' });
+    res.status(401).json({ message: 'Access token missing' });
+    return;
   }
 
   jwt.verify(token, process.env.JWT_SECRET as string, (err, user) => {
-    if (err) return res.status(403).json({ message: 'Invalid token' });
+    if (err) {
+      res.status(403).json({ message: 'Invalid token' });
+      return;
+    }
 
     req.user = user as JwtPayload;
-    next();
+    return next();
   });
 };

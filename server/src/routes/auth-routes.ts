@@ -3,7 +3,9 @@ import { User } from '../models/user.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
-export const login = async (req: Request, res: Response) => {
+const router = Router();
+
+const login = async (req: Request, res: Response): Promise<Response> => {
   const { username, password } = req.body;
 
   try {
@@ -20,13 +22,11 @@ export const login = async (req: Request, res: Response) => {
     const payload = { id: user.id, username: user.username };
     const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '1h' });
 
-    res.json({ token });
+    return res.json({ token });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
-
-const router = Router();
 
 router.post('/login', login);
 
